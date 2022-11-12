@@ -205,6 +205,7 @@ void loadSettings(settingsStruct *heishamonSettings) {
           heishamonSettings->logMqtt = ( jsonDoc["logMqtt"] == "enabled" ) ? true : false;
           heishamonSettings->logHexdump = ( jsonDoc["logHexdump"] == "enabled" ) ? true : false;
           heishamonSettings->logSerial1 = ( jsonDoc["logSerial1"] == "enabled" ) ? true : false;
+          heishamonSettings->sendRawOnMqtt = ( jsonDoc["sendRawOnMqtt"] == "enabled" ) ? true : false;
           heishamonSettings->optionalPCB = ( jsonDoc["optionalPCB"] == "enabled" ) ? true : false;
           if ( jsonDoc["waitTime"]) heishamonSettings->waitTime = jsonDoc["waitTime"];
           if (heishamonSettings->waitTime < 5) heishamonSettings->waitTime = 5;
@@ -366,6 +367,11 @@ void settingsToJson(DynamicJsonDocument &jsonDoc, settingsStruct *heishamonSetti
   } else {
     jsonDoc["logSerial1"] = "disabled";
   }
+  if (heishamonSettings->sendRawOnMqtt) {
+    jsonDoc["sendRawOnMqtt"] = "enabled";
+  } else {
+    jsonDoc["sendRawOnMqtt"] = "disabled";
+  }
   if (heishamonSettings->optionalPCB) {
     jsonDoc["optionalPCB"] = "enabled";
   } else {
@@ -405,6 +411,7 @@ int saveSettings(struct webserver_t *client, settingsStruct *heishamonSettings) 
   jsonDoc["logMqtt"] = String("");
   jsonDoc["logHexdump"] = String("");
   jsonDoc["logSerial1"] = String("");
+  jsonDoc["sendRawOnMqtt"] = String("");
   jsonDoc["optionalPCB"] = String("");
   jsonDoc["use_1wire"] = String("");
   jsonDoc["use_s0"] = String("");
@@ -438,6 +445,8 @@ int saveSettings(struct webserver_t *client, settingsStruct *heishamonSettings) 
       jsonDoc["logHexdump"] = tmp->value;
     } else if (strcmp(tmp->name.c_str(), "logSerial1") == 0) {
       jsonDoc["logSerial1"] = tmp->value;
+    } else if (strcmp(tmp->name.c_str(), "sendRawOnMqtt") == 0) {
+      jsonDoc["sendRawOnMqtt"] = tmp->value;
     } else if (strcmp(tmp->name.c_str(), "optionalPCB") == 0) {
       jsonDoc["optionalPCB"] = tmp->value;
     } else if (strcmp(tmp->name.c_str(), "ntp_servers") == 0) {
@@ -705,6 +714,11 @@ int getSettings(struct webserver_t *client, settingsStruct *heishamonSettings) {
         webserver_send_content_P(client, PSTR(",\"logSerial1\":"), 14);
 
         itoa(heishamonSettings->logSerial1, str, 10);
+        webserver_send_content(client, str, strlen(str));
+
+        webserver_send_content_P(client, PSTR(",\"sendRawOnMqtt\":"), 14);
+
+        itoa(heishamonSettings->sendRawOnMqtt, str, 10);
         webserver_send_content(client, str, strlen(str));
 
         webserver_send_content_P(client, PSTR(",\"optionalPCB\":"), 15);
